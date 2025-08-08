@@ -1,49 +1,145 @@
-# Análise de Requisito e Estimativa
-Este projeto utiliza machine learning para analisar requisitos de software e estimar os pontos de história necessários para implementá-los. Os scripts carregam datasets, geram estatísticas, processam o texto dos requisitos, treinam modelos de BERT e de ensemble, e exportam os resultados para um arquivo CSV.
+# Avaliação de Algoritmos de Aprendizado de Máquina para Estimativa de Esforço em Projetos de Software a partir de Descrições Textuais de Requisitos
 
-## Configurações Necessárias
-Antes de executar o código, algumas constantes e configurações precisam ser ajustadas:
+Este projeto faz parte de um trabalho de mestrado e tem como objetivo avaliar diferentes algoritmos de Aprendizado de Máquina (ML) — incluindo modelos clássicos e baseados em BERT — para estimar o esforço de tarefas de desenvolvimento de software (em pontos de história) a partir de descrições textuais de requisitos extraídas de sistemas como o Jira.
 
-### 1. Diretório dos Datasets
-Defina o caminho para o diretório onde os datasets estão localizados:
+---
 
-```python
-# Definição de Constantes Globais
-DIRETORIO_DATASET_BRUTO = 'D:\Resultados/datasets'
-DIRETORIO_DATASET_PROCESSADO = 'D:\Resultados/datasets_processados'
-NOME_ARQUIVO_RESULTADOS = 'D:\Resultados/resultados_modelos.csv'
-NOME_ARQUIVO_RESULTADOS_ENTRE_DATASETS = 'D:\Resultados/resultados_modelos_ENTRE_DATASETS.csv'
-NOME_ARQUIVO_RESULTADOS_MESMO_DATASET = 'D:\Resultados/resultados_modelos_MESMO_DATASET.csv'
-NOME_ARQUIVO_BERT_RESULTADOS_ENTRE_DATASETS = 'D:\Resultados/resultados_BERT_modelos_ENTRE_DATASETS.csv'
-NOME_ARQUIVO_BERT_RESULTADOS_MESMO_DATASET = 'D:\Resultados/resultados_BERT_modelos_MESMO_DATASET.csv'
+## 1. Visão Geral
+
+O repositório contém scripts para:
+
+- **Pré-processamento** de datasets contendo requisitos textuais e seus story points.
+- **Treinamento e avaliação** de modelos de ML clássicos (ex.: Random Forest, XGBoost, SVR) e modelos baseados em **BERT**.
+- Execução de experimentos **intra-dataset** e **inter-dataset**.
+- Geração e exportação de resultados em formato CSV para análise posterior.
+
+---
+
+## 2. Estrutura de Pastas
+
+```
+├── datasets_all/                # Datasets originais (não versionados)
+├── datasets_all_processados/    # Datasets processados prontos para treino/avaliação
+├── folds/                       # Divisões para validação cruzada
+├── preprocessing.py              # Script de pré-processamento
+├── run_ml_experiments.py         # Execução dos modelos clássicos de ML
+├── run_bert_experiments.py       # Execução dos modelos BERT
+├── ml_evaluation.py              # Avaliação consolidada dos modelos clássicos
+├── bert_evaluation.py            # Avaliação consolidada dos modelos BERT
+├── utils.py                      # Funções auxiliares
+└── requirements.txt              # Lista de dependências do projeto
 ```
 
-Os datasets podem ser baixados em: https://github.com/rodrigogrigo/analise-requisitos/tree/main/datasets_all
+> **Observação:** Os datasets originais não são versionados neste repositório. É necessário colocá-los manualmente na pasta `datasets_all/` antes de executar os scripts.
 
-### 2. Limitação de Registros
-Para limitar a quantidade de registros carregados de cada dataset, altere a variável LIMITAR_QUANTIDADE_REGISTROS para True. Quando essa configuração for ativada, ajuste também o valor de QUANTIDADE_REGISTROS_SE_LIMITADO:
+---
 
+## 3. Configurações Importantes
+
+Antes de executar, verifique e ajuste nos scripts:
+
+- **Caminhos para pastas**:
+```python
+DIRETORIO_DATASET_BRUTO = 'caminho/para/datasets_all'
+DIRETORIO_DATASET_PROCESSADO = 'caminho/para/datasets_all_processados'
+```
+
+- **Número de épocas de treinamento (BERT)**:
+```python
+EPOCHS = 5
+```
+
+- **Limite opcional de registros para experimentos rápidos**:
 ```python
 LIMITAR_QUANTIDADE_REGISTROS = True
-QUANTIDADE_REGISTROS_SE_LIMITADO = 15  # Ajuste conforme necessário
-``` 
-
-### 3. Número de Épocas (EPOCHS)
-No arquivo bert_evaluation.py, ajuste o valor de EPOCHS conforme necessário para definir o número de épocas para o treinamento do modelo BERT.
-
-```python
-EPOCHS = <numero_de_epocas>
+QUANTIDADE_REGISTROS_SE_LIMITADO = 15
 ```
 
-### Execução
-Após configurar as variáveis, execute o script principal com o ambiente configurado:
+---
 
+## 4. Instalação
+
+**Requisitos:**
+- Python 3.8+
+- Git
+
+**Passos:**
+
+1. Clone este repositório:
 ```bash
-myenv\Scripts\python analise_requisito_esforco_storyPoints.py
+git clone https://github.com/projetomestradoifes/ml-esforco-projetos-software.git
+cd ml-esforco-projetos-software
 ```
 
-### Resultados
-O arquivo com os resultados serão gerados no mesmo local onde estão os fontes, como nome resultados_modelos.csv
+2. Crie e ative um ambiente virtual:
+```bash
+python -m venv venv
 
-### Folds
-Os folds com a divisão do dataset para validação cruzada são gerados em /folds. A criação dos folds ocorre apenas 1 vez, caso eles não existam. 
+# Windows
+venv\Scripts\activate
+```
+
+3. Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 5. Execução
+
+### 5.1 Pré-processamento
+Prepara os datasets para uso nos modelos.
+```bash
+python preprocessing.py
+```
+
+### 5.2 Treinamento de modelos clássicos de ML
+Executa todos os modelos definidos e gera resultados em CSV.
+```bash
+python run_ml_experiments.py
+```
+
+### 5.3 Treinamento de modelos BERT
+Executa o pipeline de fine-tuning do BERT.
+```bash
+python run_bert_experiments.py
+```
+
+### 5.4 Avaliação dos modelos
+```bash
+# Modelos clássicos
+python ml_evaluation.py
+
+# Modelos BERT
+python bert_evaluation.py
+```
+
+---
+
+## 6. Resultados
+
+Após a execução, os resultados serão gerados em:
+- `resultados_modelos.csv` — métricas de desempenho (MAE, RMSE, R², etc.).
+- Pastas dentro de `folds/` — dados de cada divisão para validação cruzada.
+
+---
+
+## 7. Citação
+
+Se este projeto for útil para sua pesquisa, por favor cite:
+
+```bibtex
+@inproceedings{sobrenome2025esforco,
+  title={Avaliação de Algoritmos de Aprendizado de Máquina para Estimativa de Esforço em Projetos de Software a partir de Descrições Textuais de Requisitos},
+  author={Seu Nome Completo},
+  booktitle={Nome do Evento ou Periódico},
+  year={2025}
+}
+```
+
+---
+
+## 8. Licença
+
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
